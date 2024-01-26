@@ -1,0 +1,126 @@
+project_name: goexpandenv
+
+before:
+  hooks:
+    - rm -rf ./dist
+    - go mod tidy
+    - git push
+    - git push --tags
+builds:
+  -
+    env:
+      - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s
+      - -w
+    goos:
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - "386"
+      - arm
+      - arm64
+    goarm:
+      - "6"
+      - "7"
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: windows
+        goarch: "arm"
+      - goos: windows
+        goarch: "arm64"
+      - goos: linux
+        goarch: arm
+        goarm: "6"
+    binary: goexpandenv
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+release:
+  prerelease: auto
+  extra_files:
+    - glob: ./dist/goexpandenv_windows_amd64_v1/goexpandenv.exe
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+  algorithm: sha256
+
+brews:
+  -
+    name: goexpandenv
+    tap:
+      owner: sikalabs
+      name: homebrew-tap
+    skip_upload: auto
+    homepage: https://github.com/sikalabs/goexpandenv
+    url_template: "https://github.com/sikalabs/goexpandenv/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    folder: Formula
+    caveats: "How to use this binary: https://github.com/sikalabs/goexpandenv"
+    description: "goexpandenv is a simple CLI tool for expanding environment variables in files"
+    install: |
+      bin.install "goexpandenv"
+
+dockers:
+    -
+      goos: linux
+      goarch: amd64
+      image_templates:
+        - "sikalabs/goexpandenv:{{ .Tag }}"
+        - "ghcr.io/sikalabs/goexpandenv:{{ .Tag }}"
+      dockerfile: Dockerfile.goreleaser
+      ids:
+        - goexpandenv
+      build_flag_templates:
+        - "--platform=linux/amd64"
+        - "--label=org.opencontainers.image.created={{.Date}}"
+        - "--label=org.opencontainers.image.title={{.ProjectName}}"
+        - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+        - "--label=org.opencontainers.image.version={{.Version}}"
+        - "--label=org.opencontainers.image.source=https://github.com/sikalabs/goexpandenv"
+        - "--label=org.label-schema.schema-version=1.0"
+        - "--label=org.label-schema.version={{.Version}}"
+        - "--label=org.label-schema.name={{.ProjectName}}"
+        - "--label=com.github.actions.name={{.ProjectName}}"
+        - "--label=repository=https://github.com/sikalabs/goexpandenv"
+        - "--label=maintainer=SikaLabs <opensource@sikalabs.com>"
+    - goos: linux
+      goarch: arm64
+      image_templates:
+        - "sikalabs/goexpandenv:{{ .Tag }}-arm64v8"
+      dockerfile: Dockerfile.goreleaser.arm64v8
+      ids:
+        - goexpandenv
+      build_flag_templates:
+        - "--platform=linux/arm64"
+        - "--label=org.opencontainers.image.created={{.Date}}"
+        - "--label=org.opencontainers.image.title={{.ProjectName}}"
+        - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+        - "--label=org.opencontainers.image.version={{.Version}}"
+        - "--label=org.opencontainers.image.source=https://github.com/sikalabs/goexpandenv"
+        - "--label=org.label-schema.schema-version=1.0"
+        - "--label=org.label-schema.version={{.Version}}"
+        - "--label=org.label-schema.name={{.ProjectName}}"
+        - "--label=com.github.actions.name={{.ProjectName}}"
+        - "--label=repository=https://github.com/sikalabs/goexpandenv"
+        - "--label=maintainer=SikaLabs <opensource@sikalabs.com>"
+
+changelog:
+  filters:
+    exclude:
+      - '^VERSION'
+
+scoop:
+  bucket:
+    owner: sikalabs
+    name: scoop-bucket
+  homepage:  https://github.com/sikalabs/goexpandenv
+  description: SikaLabs Utils
+  license: MIT
