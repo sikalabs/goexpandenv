@@ -1,0 +1,4 @@
+Hi,
+This is $NAME.
+I am $KIND and I am $AGE years old.
+Nice to meet you.
